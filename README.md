@@ -132,12 +132,12 @@ To change the Email settings the module provides the `nexus3_smtp_settings` reso
 ```
 #!puppet
 nexus3_smtp_settings { 'global':
-  enabled                => true,
-  hostname               => 'mail.example.com',
-  port                   => 25,
-  username               => 'jdoe',
-  password               => 'keepitsecret',
-  sender_email           => 'nexus@example.com',
+  enabled      => true,
+  host         => 'mail.example.com',
+  port         => 25,
+  username     => 'jdoe',
+  password     => 'keepitsecret',
+  from_address => 'nexus@example.com',
 }
 ```
 
@@ -165,6 +165,25 @@ nexus3_anonymous_settings { 'global':
   enabled  => true,
   realm    => 'NexusAuthorizingRealm',
   username => 'anonymous',
+}
+```
+
+#### HTTP(S) Proxy configuration ####
+
+To change the HTTP(S) proxy settings the module provides the `nexus3_http_settings` resource.
+It allows to change the parameters used by nexus when doing an HTTP(S) request to an external server.
+
+```
+#!puppet
+nexus3_http_settings { 'global':
+  connection_user_agent      => 'nexus3_useragent',
+  connection_timeout         => 90,
+  connection_maximum_retries => 2,
+  http_enabled               => true,
+  http_host                  => 'local.com',
+  http_port                  => 1234,
+  http_auth_type             => 'username',
+  http_auth_username         => 'user',
 }
 ```
 
@@ -196,6 +215,7 @@ nexus3_ldap_settings { 'company_ldap':
   user_member_of_attribute => '',                   #optional
   ldap_filter              => '',                   #optional
   ldap_groups_as_roles     => false,                #true is default
+  group_type               => 'static',             #static is default. Valid values are static or dynamic
   group_base_dn            => 'OU=groups',          #OU=groups is default, required if ldap_groups_as_roles is true
   group_subtree            => false,                #false is default
   group_object_class       => 'group',              #group is default, required if ldap_groups_as_roles is true
@@ -247,12 +267,9 @@ The Nexus Role settings can be configured using the `nexus3_role` resource:
 ```
 #!puppet
 nexus3_role { 'nx-anonymous':
-  role_name   => 'Anonymous',       #optional
   description => 'Anonymous Role',  #optional
   roles       => ['nx-logging-all'],
   privileges  => ['nx-search-read', 'nx-repository-view-*-*-read', 'nx-repository-view-*-*-browse'],
-  read_only   => true,
-  source      => 'default',
 }
 
 ```
@@ -280,7 +297,7 @@ Cleanup policies can be set up using the `nexus3_cleanup_policy` resource:
 ```
 #!puppet
 nexus3_cleanup_policy { 'new_cleanup_policy':
-  format            => 'apt',               #Repository format this policy applies to. Valid values: 'all', 'apt', 'bower', 'docker', 'gitlfs' (hosted), 'maven2', 'npm', 'nuget', 'pypi', 'raw', 'rubygems', 'yum'
+  format            => 'apt',               #Repository format this policy applies to. Valid values: 'all', 'apt', 'bower', 'docker', 'gitlfs' (hosted), 'helm', 'maven2', 'npm', 'nuget', 'pypi', 'raw', 'rubygems', 'yum'
   notes             => 'Short description', #Optional: default is ''
   is_prerelease     => true,                #Whether the policy should apply to "release" or "prerelease" type repos. Valid values: true, false (default). Only applies to 'maven2', 'npm' or 'yum' repos
   last_blob_updated => 7,                   #Whether the policy should consider time (in days) of a components last update
@@ -297,7 +314,7 @@ The Nexus Repository settings can be configured using the `nexus3_repository` an
 #!puppet
 nexus3_repository { 'new-repository':
   type                           => 'hosted',             #valid values: 'hosted', 'proxy'
-  provider_type                  => 'maven2',             #valid values: 'apt', 'bower', 'docker', 'gitlfs' (hosted), 'maven2', 'npm', 'nuget', 'pypi', 'raw', 'rubygems', 'yum'
+  provider_type                  => 'maven2',             #valid values: 'apt', 'bower', 'docker', 'gitlfs' (hosted), 'helm', 'maven2', 'npm', 'nuget', 'pypi', 'raw', 'rubygems', 'yum'
   online                         => false,                #valid values: true (default), false
   blobstore_name                 => 'blob',               #optional, default is 'default'
   cleanup_policies               => [                     #names of existing cleanup policies
@@ -305,7 +322,7 @@ nexus3_repository { 'new-repository':
                                       'policy2',
                                     ],
   version_policy                 => 'snapshot',           #valid values: 'snapshot', 'release' (default for maven2), 'mixed'
-  write_policy                   => 'allow_write_once',   #valid values: 'read_only', 'allow_write_once (default for maven2)', 'allow_write'
+  write_policy                   => 'allow_write_once',   #valid values: 'read_only', 'allow_write_once (default for maven2)', 'allow_write', 'allow_write_by_replication'
   strict_content_type_validation => true,                 #valid values: true (default), false
 
   #the following 'remote_' and '*block*' properties may only be used when type => 'proxy'
@@ -452,3 +469,11 @@ be updated when attributes of the same resource change as well.
 4. Commit your changes (`git commit -am 'Add some feature'`)
 5. Push to the branch (`git push origin my-new-feature`)
 6. Create new pull request targeting master
+
+## Running tests ##
+
+The tests run now against a real Nexus3 Server.  
+It can be an ordinary server instance, but dummy objects will be created on it on every run, or can be executed against a server instance inside docker.  
+To build the Docker image run: `./docker/build.sh [NEXUS_VERSION, for instance, 3.40.1]`  
+To execute the container in CI mode run: `./docker/run.sh true [NEXUS_VERSION, for instance, 3.40.1]`  
+To execute the container in interactive mode run: `./docker/run.sh false [NEXUS_VERSION, for instance, 3.40.1] [container_name, for instance, nexus3-tests]`. Then enter on bash and run `bundle exec rspec`.

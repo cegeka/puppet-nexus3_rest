@@ -1,3 +1,24 @@
+## 1.0.2
+- Fix support for http settings on Nexus 3.41+
+- Fix how boolean values are set for repositories
+- Adjust how user passwords are handled to be required and checked only on user creation
+- Prevent changes on version_policy for repository groups
+
+## 1.0.1
+- Adjust upper version restriction of puppetlabs-stdlib
+
+## 1.0.0
+- Complete refactor to use the resource_api base class
+- Refactor tests to use a running Nexus server instead of mocks
+
+## 0.4.3
+- Convert to PDK project
+
+## 0.4.2
+- Add support for Helm repository type
+- Add support to configure the Negative Cache in proxied repositories
+- Add support to configure http authentication as Preemptive Bearer Token
+
 ## 0.4.1
 - Extend support to Nexus 3.20+
 - Add support to manage routing rules
