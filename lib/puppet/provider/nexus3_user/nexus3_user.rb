@@ -18,7 +18,7 @@ class Puppet::Provider::Nexus3User::Nexus3User < Puppet::ResourceApi::SimpleProv
       assert_present(r[:lastname], 'lastname is required')
       assert_present(r[:email], 'email is required')
 
-      raise ArgumentError, 'At least one role is required' if r[:roles].nil? || !r[:roles].is_a?(Array) || r[:roles].empty?
+      raise ArgumentError, 'At least one role is required' if r[:roles].nil? || !r[:roles].is_a?(Array)
 
       munge_booleans(context, r)
       r[:roles].sort!
